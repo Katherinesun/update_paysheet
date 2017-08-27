@@ -49,6 +49,7 @@ if __name__ == "__main__":
         write_to_out_file = lambda col_list: out_file.write(','.join(col_list))
 
         i = 0  # line counter for the out_file
+        incount = 0 # line counter for the in_file
         last_weekday_rate = 0.0
         employee_id = None
         prev_employee_id = None
@@ -59,6 +60,7 @@ if __name__ == "__main__":
 
         for row in in_file:
             i += 1
+            incount += 1
             columns = row.split(',')
             prev_employee_id = employee_id
             employee_id = columns[2]
@@ -71,13 +73,14 @@ if __name__ == "__main__":
             # Assuming all the data related to an employee are put together in
             # consecutive rows
             if ((prev_employee_id is not None) and
-                (employee_id != prev_employee_id)):
+                (employee_id != prev_employee_id) and
+                (prev_employee_id in cumulative_hours)):
                 new_row = add_internet_allowance(last_ORD_row,
                           cumulative_hours[prev_employee_id])
                 # Write out the new row for internet allowance
-                i += 1
                 write_to_delta_file(i, new_row)
                 write_to_out_file(new_row)
+                i += 1
 
             if paytype == 'ORD':
                 if A_or_N == 'N':
@@ -125,9 +128,9 @@ if __name__ == "__main__":
                 new_row[9] = "%.3f" % (
                              float(rate) * leave_loading_percentage / 100)
                 write_to_out_file(columns)
-                i += 1
                 write_to_delta_file(i, new_row)
                 write_to_out_file(new_row)
+                i += 1
 
             # Write the columns out by default if no logics apply
             else:
